@@ -1,0 +1,71 @@
+---
+title: "Data visualisation"
+author: "mz"
+format: html
+---
+
+## libraries
+
+
+```{r warning=FALSE, message=FALSE}
+library(dplyr)
+library(ggplot2)
+library(ggthemes)
+library(RStoolbox)
+
+```
+
+# Path
+
+```{r}
+pathfile <- read.csv(here::here("data", "mypaths.csv"), sep = ";")
+
+foldpath <- pathfile |> 
+	filter(var == "landsat_data", year == 2017) 
+
+```
+
+
+
+list all files in path (.tar)
+
+```{r}
+files <- data.frame(files = list.files(foldpath$path[1], full.names = TRUE, recursive = F))
+files$extention <- tools::file_ext(files$files)
+
+
+tar <- files |> 
+	filter(extention == "tar")
+
+
+for (i in 1:nrow(tar)) {
+  
+  # Crea il nome della cartella (foldname) rimuovendo l'estensione .tar
+  foldname <- stringr::str_sub(tar$files[i], 1, stringr::str_length(tar$files[i])-4)
+  
+  # Crea il percorso completo della nuova cartella dove verrà estratto il contenuto
+  foldpath <- file.path(foldname)
+  
+  # Controlla se la cartella esiste, se non esiste esegue l'estrazione
+  if (!dir.exists(foldpath)) {
+    
+    # Crea la cartella
+    dir.create(foldpath)
+    
+    # Estrai il contenuto del file tar nella cartella foldname
+    untar(tar$files[i], exdir = foldpath)
+    
+    cat(paste("Estratto", tar$files[i], "in", foldpath, "\n"))
+  } else {
+    cat(paste("La cartella", foldpath, "esiste già. Salto l'estrazione.\n"))
+  }
+}
+
+
+```
+
+
+
+
+
+
